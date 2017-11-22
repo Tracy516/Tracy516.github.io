@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Tracy&#39;s Blog</title>
+  <icon>https://www.gravatar.com/avatar/11b42c25c06456d562f22a38a8b65121</icon>
+  <subtitle>Summary of Front-end knowledges</subtitle>
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="http://tmac.com/"/>
+  <updated>2017-11-12T09:29:29.000Z</updated>
+  <id>http://tmac.com/</id>
+  
+  <author>
+    <name>Tracy</name>
+    <email>tmac_zc@163.com</email>
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>The fixed bottom input on IOS</title>
+    <link href="http://tmac.com/2017/11/12/The-fixed-bottom-input-on-IOS/"/>
+    <id>http://tmac.com/2017/11/12/The-fixed-bottom-input-on-IOS/</id>
+    <published>2017-11-12T09:29:29.000Z</published>
+    <updated>2017-11-12T09:29:29.000Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="IOS第三方输入法的问题"><a href="#IOS第三方输入法的问题" class="headerlink" title="IOS第三方输入法的问题"></a>IOS第三方输入法的问题</h1><h2 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h2><blockquote><p>IOS手机上当用到fixed在底部的输入框获取焦点时，第三方输入法因为有工具栏的原因，会导致输入框被遮挡。</p></blockquote><p>##具体过程</p><blockquote><p>a:输入框获取焦点，输入法键盘弹起，此时输入框在键盘上。<br>b:某个时间后，输入框向下隐藏一个工具栏的距离，导致卡不见输入框。 </p></blockquote><p><img src="https://sfault-image.b0.upaiyun.com/304/226/3042267093-57ac90f7aa90c" alt="如图"></p><h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><h3 id="方法一"><a href="#方法一" class="headerlink" title="方法一"></a>方法一</h3><p>利用定时器，当输入框获取焦点的n秒后，让页面滚动到最底部。</p><p>具体代码：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> cont = <span class="built_in">document</span>.getElementById(<span class="string">'cont'</span>);</span><br><span class="line">setTimeout(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    cont.style.height = <span class="built_in">document</span>.body.scrollHeight</span><br><span class="line">&#125;, <span class="number">1000</span>);</span><br></pre></td></tr></table></figure></p><p>此方法缺点：无法设置准确时间。<br>a:如遇到手机卡顿，1秒内未弹出输入法，此时已经执行完函数，在输入法弹出后，依旧会遇到上述问题。<br>b:如果手机及时的弹出了输入法，会导致1秒后才恢复正常。用户体验差。</p><h3 id="方法二"><a href="#方法二" class="headerlink" title="方法二"></a>方法二</h3><p>设置Interval定时器，当输入框获取焦点后，每50ms执行一次让页面滚动到最底部的函数，然后清空定时器。</p><p>具体代码：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> cont = <span class="built_in">document</span>.getElementById(<span class="string">'cont'</span>);</span><br><span class="line"><span class="keyword">var</span> interval = setInterval(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    cont.style.height = <span class="built_in">document</span>.body.scrollHeight</span><br><span class="line">&#125;, <span class="number">50</span>);</span><br><span class="line"></span><br><span class="line">clearInterval(interval);<span class="comment">//失去焦点时执行或者某个时间段后执行。</span></span><br></pre></td></tr></table></figure></p><p>此方法优点：有效解决了方法一的问题，即使手机出现短暂的卡顿，也可以正常使用。</p><p>此方法缺点：<br>a:IOS11系统在执行定时器内的函数时，cont元素会闪，导致该元素每50ms闪烁一次。</p><h3 id="导致两种方法不可行的共同根源"><a href="#导致两种方法不可行的共同根源" class="headerlink" title="导致两种方法不可行的共同根源"></a>导致两种方法不可行的共同根源</h3><pre><code>即无法获知何时输入框向下隐藏结束。</code></pre><h3 id="方法三"><a href="#方法三" class="headerlink" title="方法三"></a>方法三</h3><p>在input获取焦点后，获得input元素到顶部的距离，判断每个时间段内此距离是否与上个时间段内的此距离相等，如果相等，即证明该</p><p>具体代码：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">var</span> inputEle  =  <span class="built_in">document</span>.getElementById(<span class="string">'mob'</span>);</span><br><span class="line"><span class="keyword">var</span> topValue = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">var</span> timer = <span class="literal">null</span>;</span><br><span class="line"><span class="keyword">var</span> interval = <span class="literal">null</span>;</span><br><span class="line"><span class="keyword">var</span> formEle =  <span class="built_in">document</span>.getElementById(<span class="string">'form'</span>);</span><br><span class="line"><span class="keyword">if</span>(<span class="regexp">/Android|webOS|iPhone|iPod|iPad|BlackBerry/i</span>.test(navigator.userAgent)) &#123;</span><br><span class="line">        inputBindFocusEvent();</span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">inputBindFocusEvent</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="keyword">var</span> input = <span class="built_in">document</span>.getElementById(<span class="string">'mob'</span>);</span><br><span class="line">    input.onfocus= <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        formEle.style.opacity = <span class="number">0</span>;</span><br><span class="line">        interval = setInterval(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">            <span class="keyword">if</span>(timer == <span class="literal">null</span>)&#123;</span><br><span class="line">                timer = setInterval(calc,<span class="number">500</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            topValue = formEle.getBoundingClientRect().top;<span class="comment">//每50ms更新一次topValue的值</span></span><br><span class="line">        &#125;, <span class="number">50</span>);</span><br><span class="line">    &#125;  </span><br><span class="line">&#125;   </span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">calc</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(formEle.getBoundingClientRect().top ==topValue)&#123;<span class="comment">//比较现在输入框距顶部的距离和之前50ms时输入框距顶部的距离是否相等，如果相等，说明输入框已隐藏到下面。</span></span><br><span class="line">        <span class="built_in">window</span>.scrollTo(<span class="number">0</span>, <span class="number">1000000</span>);<span class="comment">//此时将页面滚动到底部</span></span><br><span class="line">        formEle.style.opacity = <span class="number">1</span>;<span class="comment">//输入框显示</span></span><br><span class="line">        clearInterval(timer);</span><br><span class="line">        clearInterval(interval);</span><br><span class="line">        timer = <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p><p>此方法优点：有效解决了第三方输入法问题以及IOS的闪屏现象。</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h1 id=&quot;IOS第三方输入法的问题&quot;&gt;&lt;a href=&quot;#IOS第三方输入法的问题&quot; class=&quot;headerlink&quot; title=&quot;IOS第三方输入法的问题&quot;&gt;&lt;/a&gt;IOS第三方输入法的问题&lt;/h1&gt;&lt;h2 id=&quot;问题描述&quot;&gt;&lt;a href=&quot;#问题描述&quot; cla
+      
+    
+    </summary>
+    
+      <category term="Bugs" scheme="http://tmac.com/categories/Bugs/"/>
+    
+    
+      <category term="H5" scheme="http://tmac.com/tags/H5/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Hello World</title>
+    <link href="http://tmac.com/2017/11/09/hello-world/"/>
+    <id>http://tmac.com/2017/11/09/hello-world/</id>
+    <published>2017-11-09T03:26:19.000Z</published>
+    <updated>2017-11-09T03:26:19.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="external">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="external">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="external">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="external">GitHub</a>.</p><h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="external">Writing</a></p><h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="external">Server</a></p><h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="external">Generating</a></p><h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="external">Deployment</a></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;Welcome to &lt;a href=&quot;https://hexo.io/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Hexo&lt;/a&gt;! This is your very first post. Check &lt;a href=&quot;https://hexo.
+      
+    
+    </summary>
+    
+    
+  </entry>
+  
+</feed>
